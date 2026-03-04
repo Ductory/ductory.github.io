@@ -14,7 +14,7 @@
 <meta property="og:description" content="收集了一些评论区热心玩家提供的资源网站，以及一些我逆向得到的网址，并展示应当如何对卡密类APP进行逆向。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2024-05-10T08:34:40.000Z">
-<meta property="article:modified_time" content="2024-10-08T12:49:11.018Z">
+<meta property="article:modified_time" content="2026-03-04T14:43:11.416Z">
 <meta property="article:author" content="Dangfer">
 <meta property="article:tag" content="reverse">
 <meta property="article:tag" content="资源分享">
@@ -82,8 +82,8 @@
   <div class="article-meta">
     <a href="/2024/05/10/%E5%85%8D%E8%B4%B9%E7%9A%84%E9%BB%84%E6%B2%B9%E7%BD%91%E7%AB%99%E5%88%86%E4%BA%AB/" class="article-date">
   <time class="dt-published" datetime="2024-05-10T08:34:40.000Z" itemprop="datePublished">2024-05-10</time>
-  <time class="dt-updated" datetime="2024-10-08T12:49:11.018Z" itemprop="dateUpdated">
-     (UPDATED 2024-10-08)
+  <time class="dt-updated" datetime="2026-03-04T14:43:11.416Z" itemprop="dateUpdated">
+     (UPDATED 2026-03-04)
   </time>
 </a>
     
@@ -114,6 +114,14 @@
 <p>如果网站存在一些<strong>负面特征</strong>，我会在最前面标注出来。<code>Unchecked</code>表示我未对网站做检查。</p>
 <p>每个网站的资源毕竟有限，建议多个网站一起检索。</p>
 <p>这里提供了一些可能会用到的破解后的APP。逆向教程见<a href="#%E9%80%86%E5%90%91">此处</a>。</p>
+<hr />
+<p>2026-3-4</p>
+<p>博客站很早之前就被拿下了，一直没兴趣更新</p>
+<p>心血来潮来博客看了一下结果发现还有人在，那还是更新一下吧ww</p>
+<ul>
+<li>更新了Tuozi的解密算法</li>
+<li>逆向中添加了FusionApp的小节</li>
+</ul>
 <details>
     <summary><b>破解后的APP链接（点击展开）</b></summary>
     链接：<a target="_blank" rel="noopener" href='https://pan.baidu.com/s/1j_pe_cQocpiZN2E7iCooUQ?pwd=duck'>百度网盘</a><br/>
@@ -136,26 +144,58 @@
 <p>网址：<a target="_blank" rel="noopener" href="https://tuozi.vip/shqu/wordpress/">AHH-Tuozi</a></p>
 <p><strong>简介</strong></p>
 <p>这个网站的下载链接是加密过的，需要配合APP使用，但可以在此在线解密。</p>
-<p>这个APP是用FusionApp写的，相比于其他的直接网页套壳，技术力稍微更高一些。APP里还整合了很多其他资源，APP图标也不社死，比较推荐下载APP。</p>
+<p>这个APP是用FusionApp写的，相比于其他的直接网页套壳，技术力稍微更高一些。APP里还整合了很多其他资源，APP图标也不社死，比较推荐下载APP。（最近会有个社死的开屏广告）</p>
 <p><strong>在线解密</strong></p>
-<p>可以看出规律，是utf-8字符串做了异或加密。要拿到异或值更新的算法太困难麻烦，力大砖飞打表就完事了</p>
+<p>可以看出规律，是utf-8字符串做了<span style='color:red'>魔改的RC4加密</span>。具体算法直接看网页源码即可。</p>
 <textarea id="txt_tuozi" placeholder="请输入加密后的文本" rows="5" style="width:80%"></textarea>
 <p><button id="btn_tuozi" onclick="(() => {
-    let enc_str = document.getElementById('txt_tuozi').value;
-    const table = 'D7089D2B61600DE8AF8ADAC3591C5EE7648F05031C36310563DE951DD0633A438DF3E77AC3D357CBC9BD18AAD6AAB88A753A6AC91D7B13CF99D25F88E9CD60F95C34DB9CAB993CD40E92D009B6161C4C1A5905B9109D94BFB45A3FAD4EE214BDE2E74A2B2EFE51B35B4D9410D0D55D454618C28E8E1F076174D823D26E3EC892E99DA7F7C6FC0DAB7BE3DC643FA53C9C6C8791987771AFA4C91B2BAFEDCD61DB779C746C260E048EC258F75C020C754EE3DE06DA7CDA353BE566D7F0DA80E903ED2E5B5047AC83224919D96535BF6AEDF889B35F925F2B838FE575DC28D8A32234131647500962E7BA82861CC421C8F5E1CE6FE897113CBBAE2ECA26CC6A5A0E5183E563DF5AD0F19357AF402BE1A2AECF4FD3336110093D4025B7E669BAB8812F0CBEFBD3690EAD04AD4A948E';
-    let hexToUint8Array = (hex) => {
-        let bytes = new Uint8Array(hex.length / 2);
-        for (let i = 0; i < hex.length; ++i)
-            bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
-        return bytes;
-    };
-    let enc_arr = hexToUint8Array(enc_str);
-    let tab_arr = hexToUint8Array(table);
-    let dec_arr = new Uint8Array(enc_arr.length);
-    for (let i = 0; i < enc_arr.length; ++i)
-        dec_arr[i] = enc_arr[i] ^ tab_arr[i];
-    let decoder = new TextDecoder('utf-8');
-    document.getElementById('txt_tuozi').value = decoder.decode(dec_arr);
+    const keyStr = 'Tuozi';
+    const hexStr = document.getElementById('txt_tuozi').value.replace(/\s+/g, '');
+    if (!hexStr) { alert('请输入密文！'); return; }
+    try {
+        const hexToBytes = (hex) => {
+            if (hex.length % 2 !== 0) throw new Error('Hex 长度必须是偶数');
+            const bytes = new Uint8Array(hex.length / 2);
+            for (let i = 0; i < hex.length; i += 2) {
+                bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
+            }
+            return bytes;
+        };
+        let keyBits = [];
+        for (let i = keyStr.length - 1; i >= 0; i--) {
+            let byteVal = keyStr.charCodeAt(i);
+            let binStr = byteVal.toString(2).padStart(8, '0');
+            for (let char of binStr) {
+                keyBits.push(parseInt(char));
+            }
+        }
+        let S = new Uint8Array(256);
+        for (let i = 0; i < 256; i++) S[i] = i;
+        let j = 0;
+        let keyLen = keyBits.length;
+        for (let i = 0; i < 256; i++) {
+            let bitVal = keyBits[i % keyLen];
+            j = (j + S[i] + bitVal) % 256;
+            let temp = S[i]; S[i] = S[j]; S[j] = temp;
+        }
+        const cipherBytes = hexToBytes(hexStr);
+        const resultBytes = new Uint8Array(cipherBytes.length);
+        let i_prga = 0;
+        let j_prga = 0;
+        for (let k = 0; k < cipherBytes.length; k++) {
+            i_prga = (i_prga + 1) % 256;
+            j_prga = (j_prga + S[i_prga]) % 256;
+            let temp = S[i_prga]; S[i_prga] = S[j_prga]; S[j_prga] = temp;
+            let t = (S[i_prga] + S[j_prga]) % 256;
+            let keystreamByte = S[t];
+            resultBytes[k] = cipherBytes[k] ^ keystreamByte;
+        }
+        const decoder = new TextDecoder('utf-8');
+        document.getElementById('txt_tuozi').value = decoder.decode(resultBytes);
+    } catch (e) {
+        alert('解密发生错误: ' + e.message);
+        console.error(e);
+    }
 })()">解密</button></p>
 <h2 id="萌次元"><a class="markdownIt-Anchor" href="#萌次元"></a> 萌次元</h2>
 <p>😓<span style='color:red'><strong>需要注册</strong></span><kbd>+</kbd>😓<span style='color:red'>存在广告</span></p>
@@ -298,8 +338,11 @@
 <h4 id="处理方法-2"><a class="markdownIt-Anchor" href="#处理方法-2"></a> 处理方法</h4>
 <p>首先处理卡密业务的Application类（如上文所说，这通常是<code>com.sadfxg.fasg</code>的<code>App</code>类）。</p>
 <p>这就是我们上文所说的<code>InjectApp</code>类。它的超类通常是<code>Application</code>类，然后检查哪个类的超类被篡改为了<code>InjectApp</code>类，把<code>InjectApp</code>类用<code>Application</code>类替换掉即可。</p>
+<h2 id="fusionapp"><a class="markdownIt-Anchor" href="#fusionapp"></a> FusionApp</h2>
+<p>我们主要关注assets/pages下的lua文件。可以看出通常会使用base64来加壳。AndroLua脱壳相关的文章很多，自行逆向也不难，也有现成的工具，总之拿到luac并不难。然后使用工具将其反编译就可以了。</p>
+<p>以Tuozi为例，可以看出lua文件通常采用拼音首字母命名。因此我们关注cyyx目录下的main.lua。在这里我们可以看到处理WordPress网页的代码，里面出现了<code>activity.newActivity(&quot;yxfl.lua&quot;, bundle)</code>。这提示我们去关注<code>yxfl.lua</code>，最终我们在这里找到了crypt的代码。</p>
 <h1 id="如果你要试手"><a class="markdownIt-Anchor" href="#如果你要试手"></a> 如果你要试手</h1>
-<p>这里是我已经检查过的一些百度网盘链接：</p>
+<p>这里是我已经检查过的一些百度网盘链接（过时）：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">handled_url_dict: <span class="built_in">dict</span> = &#123;</span><br><span class="line">	<span class="string">&#x27;http://tieba.baidu.com/mo/q/checkurl?url=https%3A%2F%2Fpan.baidu.com%2Fs%2F1J-sqVX_eVfR-z8l2zFE9UA%3Fpwd%3D7788&amp;urlrefer=d71ea17831306fbffb7bdd97fd9c7ecd&#x27;</span>: <span class="string">&#x27;tuozi&#x27;</span>,</span><br><span class="line">	<span class="string">&#x27;http://tieba.baidu.com/mo/q/checkurl?url=https%3A%2F%2Fpan.baidu.com%2Fs%2F1PL03mt4Xn1CPktwb66wpRQ%3Fpwd%3Dr76e&amp;urlrefer=3edd5b939f8c95c3c790a0edc88d5f83&#x27;</span>: <span class="string">&#x27;部落&#x27;</span>,</span><br><span class="line">	<span class="string">&#x27;http://tieba.baidu.com/mo/q/checkurl?url=https%3A%2F%2Fpan.baidu.com%2Fs%2F1l_VEGP34MvEZ8IAtpgZc7A%3Fpwd%3D31pc&amp;urlrefer=abfe6ef7c1d3b0e22d399d9d5897184f&#x27;</span>: <span class="string">&#x27;部落&#x27;</span>,</span><br><span class="line">	<span class="string">&#x27;http://tieba.baidu.com/mo/q/checkurl?url=https%3A%2F%2Fpan.baidu.com%2Fs%2F1oEHxJRwxHO5iykhVONq1Ig&amp;urlrefer=a18c8fbfaa26d1e8fa8a135581515bc9&#x27;</span>: <span class="string">&#x27;萌次元 xyyw&#x27;</span>,</span><br><span class="line">	<span class="string">&#x27;http://tieba.baidu.com/mo/q/checkurl?url=https%3A%2F%2Fpan.baidu.com%2Fs%2F1WElPaEP7upzZPf7XYP4R2Q&amp;urlrefer=c8a44cfd61a075db7c4d49d19665f024&#x27;</span>: <span class="string">&#x27;萌次元 0sia&#x27;</span>,</span><br><span class="line">	<span class="string">&#x27;http://tieba.baidu.com/mo/q/checkurl?url=https%3A%2F%2Fpan.baidu.com%2Fs%2F1oMB2E_j_mb2tZgpqAHV3gw&amp;urlrefer=7fbc9c31b8d6fa009981f04680738275&#x27;</span>: <span class="string">&#x27;萌次元 zk2u&#x27;</span>,</span><br><span class="line">	<span class="string">&#x27;http://tieba.baidu.com/mo/q/checkurl?url=https%3A%2F%2Fpan.baidu.com%2Fs%2F1bsZzkL27C2h9y2u8-aB-yA&amp;urlrefer=684549035e6296cf88d14f9244ae767d&#x27;</span>: <span class="string">&#x27;萌次元 n7xn&#x27;</span>,</span><br><span class="line">	<span class="string">&#x27;http://tieba.baidu.com/mo/q/checkurl?url=https%3A%2F%2Fpan.baidu.com%2Fs%2F1LZXlMWKLDFG8nfsLjhhJKw&amp;urlrefer=d32da8f3a41a0167b35b5f76197ecc5b&#x27;</span>: <span class="string">&#x27;萌次元 p5hq&#x27;</span>,</span><br><span class="line">	<span class="string">&#x27;http://tieba.baidu.com/mo/q/checkurl?url=https%3A%2F%2Fpan.baidu.com%2Fs%2F19Oyftx03wBM5zgy7gvMf_g&amp;urlrefer=60f26914a9f5b636705e494314ea63ed&#x27;</span>: <span class="string">&#x27;萌次元 8ahf&#x27;</span>,</span><br><span class="line">	<span class="string">&#x27;http://tieba.baidu.com/mo/q/checkurl?url=https%3A%2F%2Fpan.baidu.com%2Fs%2F1cgCjG_lS76TzW25Z8LOslg&amp;urlrefer=c2dedf7aa7c153b1b2333f5b050cba79&#x27;</span>: <span class="string">&#x27;萌次元 9rqj&#x27;</span>,</span><br><span class="line">	<span class="string">&#x27;http://tieba.baidu.com/mo/q/checkurl?url=https%3A%2F%2Fpan.baidu.com%2Fs%2F1GvqDQGOjjB9RCrWDux8m1w&amp;urlrefer=9224da62268c30e47038a1880af189d8&#x27;</span>: <span class="string">&#x27;萌次元 dqe7&#x27;</span>,</span><br><span class="line">	<span class="string">&#x27;http://tieba.baidu.com/mo/q/checkurl?url=https%3A%2F%2Fpan.baidu.com%2Fs%2F1cg1wyEcsyLg_oodnSPrgOw&amp;urlrefer=9e89e6c87cee26d18232428d00103047&#x27;</span>: <span class="string">&#x27;萌次元 bo7w&#x27;</span>,</span><br><span class="line">	<span class="string">&#x27;http://tieba.baidu.com/mo/q/checkurl?url=https%3A%2F%2Fpan.baidu.com%2Fs%2F1j4bAGIt7wBGpNR-KSIlipQ&amp;urlrefer=a4153b30c3542d7e52fdba6891150765&#x27;</span>: <span class="string">&#x27;萌次元 23sc&#x27;</span>,</span><br><span class="line">	<span class="string">&#x27;http://tieba.baidu.com/mo/q/checkurl?url=https%3A%2F%2Fpan.baidu.com%2Fs%2F11BqcXrTREzrxOophS9aIFQ&amp;urlrefer=1928805abed455152a86697338054fbc&#x27;</span>: <span class="string">&#x27;萌次元 dq7x&#x27;</span>,</span><br><span class="line">	<span class="string">&#x27;http://tieba.baidu.com/mo/q/checkurl?url=https%3A%2F%2Fpan.baidu.com%2Fs%2F1fSkhnuNKH_N94lj64vhbQw%3Fpwd%3Dfdrl&amp;urlrefer=23204cbd8f1f529898e2d24adc20a42f&#x27;</span>: <span class="string">&#x27;萌幻之乡&#x27;</span>,</span><br><span class="line">	<span class="string">&#x27;http://tieba.baidu.com/mo/q/checkurl?url=https%3A%2F%2Fpan.baidu.com%2Fs%2F1mbH4-X64_XllJw__IBHD7A%3Fpwd%3DL4uM&amp;urlrefer=64cb43c1425240ed6460e03305c3d9e4&#x27;</span>: <span class="string">&#x27;萌幻之乡&#x27;</span>,</span><br><span class="line">	<span class="string">&#x27;http://tieba.baidu.com/mo/q/checkurl?url=https%3A%2F%2Fpan.baidu.com%2Fs%2F12alyBI48iXxtstZZW3yhfg%3Fpwd%3Dn1PR&amp;urlrefer=4559ee73573ed2f8603cb37b60235c6c&#x27;</span>: <span class="string">&#x27;萌幻之乡&#x27;</span>,</span><br><span class="line">	<span class="string">&#x27;http://tieba.baidu.com/mo/q/checkurl?url=https%3A%2F%2Fpan.baidu.com%2Fs%2F1qzk1jtkzO_Z3LI-OsQ9kvw%3Fpwd%3De763&amp;urlrefer=aa4bc575695f630a7e76670b562d4060&#x27;</span>: <span class="string">&#x27;萌幻之乡&#x27;</span>,</span><br><span class="line">	<span class="string">&#x27;http://tieba.baidu.com/mo/q/checkurl?url=https%3A%2F%2Fpan.baidu.com%2Fs%2F1UKbJGavPvzfq6CExfY00FQ%3Fpwd%3DJ9TW&amp;urlrefer=649c2497ed14a92fe78ae3d049feeff4&#x27;</span>: <span class="string">&#x27;萌幻之乡&#x27;</span>,</span><br><span class="line">	<span class="string">&#x27;http://tieba.baidu.com/mo/q/checkurl?url=https%3A%2F%2Fpan.baidu.com%2Fs%2F1paSTaHQX-ZoBLQyge28V7Q%3Fpwd%3DPCP7&amp;urlrefer=b5c2555aed1242220abac3eac93c99c6&#x27;</span>: <span class="string">&#x27;萌幻之乡&#x27;</span>,</span><br><span class="line">	<span class="string">&#x27;http://tieba.baidu.com/mo/q/checkurl?url=https%3A%2F%2Fpan.baidu.com%2Fs%2F1l7UL5yJuubxIt_uYwxqYog%3Fpwd%3Df479&amp;urlrefer=1446291b84cc23ec923c3a41719e5b13&#x27;</span>: <span class="string">&#x27;萌幻之乡&#x27;</span>,</span><br><span class="line">	<span class="string">&#x27;http://tieba.baidu.com/mo/q/checkurl?url=https%3A%2F%2Fpan.baidu.com%2Fs%2F1OkGA5hITz1yRJ03n9kHqvw&amp;urlrefer=4dce58b3eb23dc7cd35588de831d48fe&#x27;</span>: <span class="string">&#x27;cmdw 7nFn&#x27;</span>,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>这些链接是贴子里的链接，我的爬虫通过判断这些链接来检查是否已经处理过了（因为有些广告哥会用同一个链接发多个贴子）。把这些链接复制到浏览器里，然后做一次跳转就可以到真实的网盘链接了。或者可以这样：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> urllib.parse <span class="keyword">as</span> urlp</span><br><span class="line"><span class="comment"># 假设 link 为你的链接</span></span><br><span class="line">url: <span class="built_in">str</span> = urlp.parse_qs(urlp.urlparse(urlp.unquote(link)).query)[<span class="string">&#x27;url&#x27;</span>][<span class="number">0</span>]</span><br></pre></td></tr></table></figure>
@@ -332,7 +375,7 @@
   
     
       <div id="toc" style="visibility:hidden">
-  <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A3%B0%E6%98%8E"><span class="toc-text"> 声明</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BD%91%E7%AB%99%E5%88%86%E4%BA%AB"><span class="toc-text"> 网站分享</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#cmdwacg%E5%98%A4%E5%98%A4%E6%80%AA"><span class="toc-text"> CMDW（ACG嘤嘤怪）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%98%E5%85%B9tuozi"><span class="toc-text"> 托兹（Tuozi）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%90%8C%E6%AC%A1%E5%85%83"><span class="toc-text"> 萌次元</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%90%8C%E5%B9%BB%E4%B9%8B%E4%B9%A1"><span class="toc-text"> 萌幻之乡</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%80%81%E7%8E%8B%E8%B5%84%E6%BA%90%E9%83%A8%E8%90%BD"><span class="toc-text"> 老王资源部落</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E8%99%8E%E8%BD%AF%E4%BB%B6%E5%BA%93"><span class="toc-text"> 小虎软件库</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%BB%84%E6%B2%B9%E4%BB%93%E5%BA%93"><span class="toc-text"> 黄油仓库</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%8D%E8%B4%B9%E9%BB%84%E6%B2%B918"><span class="toc-text"> 免费黄油18+</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%85%E4%BB%95%E5%A4%A9%E5%A0%82"><span class="toc-text"> 绅仕天堂</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%88%B1%E9%9C%B2%E5%A8%98%E3%81%AE%E5%BA%AD"><span class="toc-text"> 爱露娘の庭</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A6%BB%E7%BA%BF%E5%95%A6"><span class="toc-text"> 离线啦</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#galgamex"><span class="toc-text"> Galgamex</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#flysheep%E8%B5%84%E6%BA%90%E9%81%BF%E9%9A%BE%E6%89%80"><span class="toc-text"> flysheep资源避难所</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#switch%E5%96%B5%E5%96%B5%E5%96%B5"><span class="toc-text"> switch喵喵喵</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E3%83%8E%E3%83%99%E3%83%AB%E3%82%B2%E3%83%BC%E3%83%A0%E3%82%B3%E3%83%AC%E3%82%AF%E3%82%B7%E3%83%A7%E3%83%B3"><span class="toc-text"> ノベルゲームコレクション</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#dbtorrent"><span class="toc-text"> DBTorrent</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#touchgal"><span class="toc-text"> TouchGal</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BF%AB%E6%84%8F%E5%BA%93"><span class="toc-text"> 快意库</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E5%A6%96%E6%80%AA%E5%88%86%E4%BA%AB"><span class="toc-text"> 小妖怪分享</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%91%E4%BA%AB%E7%A4%BE"><span class="toc-text"> 云享社</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#steamunlocked"><span class="toc-text"> STEAMUNLOCKED</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A8%B1%E8%8A%B1acg%E8%B5%84%E6%BA%90%E7%BD%91"><span class="toc-text"> 樱花ACG资源网</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%93%94%E5%92%94-%E7%A6%81%E6%BC%AB%E4%B9%8B%E7%B1%BB"><span class="toc-text"> 哔咔、禁漫之类</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B7%A5%E5%85%B7%E7%B1%BB"><span class="toc-text"> 工具类</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#alpharomdie"><span class="toc-text"> AlphaROMdiE</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%80%86%E5%90%91"><span class="toc-text"> 逆向</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8A%93%E5%8C%85"><span class="toc-text"> 抓包</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%81%A2%E5%A4%8Dapplication%E7%B1%BB"><span class="toc-text"> 恢复Application类</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8E%9F%E7%90%86"><span class="toc-text"> 原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A0%E9%99%A4%E6%B3%A8%E5%85%A5%E7%9A%84application%E7%B1%BB"><span class="toc-text"> 删除注入的Application类</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8E%9F%E7%90%86-2"><span class="toc-text"> 原理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%84%E7%90%86%E6%96%B9%E6%B3%95"><span class="toc-text"> 处理方法</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%81%A2%E5%A4%8Dapplication%E7%B1%BB%E7%9A%84%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB"><span class="toc-text"> 恢复Application类的继承关系</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8E%9F%E7%90%86-3"><span class="toc-text"> 原理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%84%E7%90%86%E6%96%B9%E6%B3%95-2"><span class="toc-text"> 处理方法</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E6%9E%9C%E4%BD%A0%E8%A6%81%E8%AF%95%E6%89%8B"><span class="toc-text"> 如果你要试手</span></a></li></ol>
+  <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A3%B0%E6%98%8E"><span class="toc-text"> 声明</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BD%91%E7%AB%99%E5%88%86%E4%BA%AB"><span class="toc-text"> 网站分享</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#cmdwacg%E5%98%A4%E5%98%A4%E6%80%AA"><span class="toc-text"> CMDW（ACG嘤嘤怪）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%98%E5%85%B9tuozi"><span class="toc-text"> 托兹（Tuozi）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%90%8C%E6%AC%A1%E5%85%83"><span class="toc-text"> 萌次元</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%90%8C%E5%B9%BB%E4%B9%8B%E4%B9%A1"><span class="toc-text"> 萌幻之乡</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%80%81%E7%8E%8B%E8%B5%84%E6%BA%90%E9%83%A8%E8%90%BD"><span class="toc-text"> 老王资源部落</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E8%99%8E%E8%BD%AF%E4%BB%B6%E5%BA%93"><span class="toc-text"> 小虎软件库</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%BB%84%E6%B2%B9%E4%BB%93%E5%BA%93"><span class="toc-text"> 黄油仓库</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%8D%E8%B4%B9%E9%BB%84%E6%B2%B918"><span class="toc-text"> 免费黄油18+</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%85%E4%BB%95%E5%A4%A9%E5%A0%82"><span class="toc-text"> 绅仕天堂</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%88%B1%E9%9C%B2%E5%A8%98%E3%81%AE%E5%BA%AD"><span class="toc-text"> 爱露娘の庭</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A6%BB%E7%BA%BF%E5%95%A6"><span class="toc-text"> 离线啦</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#galgamex"><span class="toc-text"> Galgamex</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#flysheep%E8%B5%84%E6%BA%90%E9%81%BF%E9%9A%BE%E6%89%80"><span class="toc-text"> flysheep资源避难所</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#switch%E5%96%B5%E5%96%B5%E5%96%B5"><span class="toc-text"> switch喵喵喵</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E3%83%8E%E3%83%99%E3%83%AB%E3%82%B2%E3%83%BC%E3%83%A0%E3%82%B3%E3%83%AC%E3%82%AF%E3%82%B7%E3%83%A7%E3%83%B3"><span class="toc-text"> ノベルゲームコレクション</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#dbtorrent"><span class="toc-text"> DBTorrent</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#touchgal"><span class="toc-text"> TouchGal</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BF%AB%E6%84%8F%E5%BA%93"><span class="toc-text"> 快意库</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E5%A6%96%E6%80%AA%E5%88%86%E4%BA%AB"><span class="toc-text"> 小妖怪分享</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%91%E4%BA%AB%E7%A4%BE"><span class="toc-text"> 云享社</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#steamunlocked"><span class="toc-text"> STEAMUNLOCKED</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A8%B1%E8%8A%B1acg%E8%B5%84%E6%BA%90%E7%BD%91"><span class="toc-text"> 樱花ACG资源网</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%93%94%E5%92%94-%E7%A6%81%E6%BC%AB%E4%B9%8B%E7%B1%BB"><span class="toc-text"> 哔咔、禁漫之类</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B7%A5%E5%85%B7%E7%B1%BB"><span class="toc-text"> 工具类</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#alpharomdie"><span class="toc-text"> AlphaROMdiE</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%80%86%E5%90%91"><span class="toc-text"> 逆向</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8A%93%E5%8C%85"><span class="toc-text"> 抓包</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%81%A2%E5%A4%8Dapplication%E7%B1%BB"><span class="toc-text"> 恢复Application类</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8E%9F%E7%90%86"><span class="toc-text"> 原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A0%E9%99%A4%E6%B3%A8%E5%85%A5%E7%9A%84application%E7%B1%BB"><span class="toc-text"> 删除注入的Application类</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8E%9F%E7%90%86-2"><span class="toc-text"> 原理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%84%E7%90%86%E6%96%B9%E6%B3%95"><span class="toc-text"> 处理方法</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%81%A2%E5%A4%8Dapplication%E7%B1%BB%E7%9A%84%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB"><span class="toc-text"> 恢复Application类的继承关系</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8E%9F%E7%90%86-3"><span class="toc-text"> 原理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%84%E7%90%86%E6%96%B9%E6%B3%95-2"><span class="toc-text"> 处理方法</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#fusionapp"><span class="toc-text"> FusionApp</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E6%9E%9C%E4%BD%A0%E8%A6%81%E8%AF%95%E6%89%8B"><span class="toc-text"> 如果你要试手</span></a></li></ol>
 </div>
     
     
@@ -442,7 +485,7 @@
   
   <div class="outer">
     <div id="footer-info" class="inner">
-      &copy; 2024 Dangfer<br>
+      &copy; 2026 Dangfer<br>
       <a rel="license noopener" target="_blank" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a></br> All website licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">CC BY 4.0</a></br>
       
   
